@@ -1,0 +1,20 @@
+{
+    "name": "yunxuan\/lighting",
+    "description": "light framework",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yunxuan",
+            "email": "yunxuanhao@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "7.1",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yunxuan\\Lighting\\": "src"
+        }
+    }
+}
