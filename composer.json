@@ -15,6 +15,9 @@
     "autoload": {
         "psr-4": {
             "Yunxuan\\Lighting\\": "src"
-        }
+        },
+        "files": [
+            "src/helper.php"
+        ]
     }
 }

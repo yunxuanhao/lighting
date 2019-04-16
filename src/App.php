@@ -16,6 +16,11 @@ class App
 
     private $_env;
 
+    protected function __construct()
+    {
+
+    }
+
     public function getRequestTime()
     {
         if($this->_requestTime === null) {
@@ -26,6 +31,10 @@ class App
 
     public function run()
     {
+
+
+
+
 
     }
 
