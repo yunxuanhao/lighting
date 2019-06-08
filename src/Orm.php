@@ -14,6 +14,17 @@ class Orm
 
     protected static $connPool;
 
+    protected $dbConfig;
+    protected $table;
+
+    protected $master;
+    protected $slaves;      // slaveList
+
+    public function __construct()
+    {
+        $config = config($this->dbConfig);
+    }
+
     public function getConn($key)
     {
         if(self::$connPool[$key] === null) {
