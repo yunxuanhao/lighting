@@ -6,14 +6,16 @@ namespace Yunxuan\Lighting;
 
 class Response
 {
-    use InstanceTrait;
+    private static $_jsonData = [];
 
-    /**
-     * @param $data
-     */
-    public function json($data) : void
+    public static function json($data)
     {
-        header('Content-Type: application/json');
-        echo json_encode($data);
+        self::$_jsonData = $data;
+    }
+
+    public static function render()
+    {
+//        header('Content-Type: application/json');
+        echo json_encode(array_merge(getTrace(), ['data' => self::$_jsonData]));
     }
 }

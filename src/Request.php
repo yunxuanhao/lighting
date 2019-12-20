@@ -11,39 +11,47 @@ namespace Yunxuan\Lighting;
 
 class Request
 {
-    use InstanceTrait;
+    private static $_files;
+    private static $_getParams;
+    private static $_postParams;
+    private static $_inputParams;
 
-    private $_header;
-    private $_files;
-    private $_getParams;
-    private $_postParams;
-
-    public function __construct()
+    public static function init()
     {
-        $this->_getParams = $_GET;
-        $this->_postParams = $_POST;
-        $this->_getParams = $_SERVER;
-        $this->_files = $_FILES;
+        self::$_getParams = $_GET;
+        self::$_postParams = $_POST;
+        self::$_files = $_FILES;
+        self::$_inputParams = json_decode(file_get_contents('php://input'), true) ?? [];
     }
 
-    public function get($key, $default = null)
+    public static function get($key, $default = null)
     {
-        return $this->_getParams[$key] ?? $default;
+        return self::$_getParams[$key] ?? $default;
     }
 
-    public function post($key, $default = null)
+    public static function post($key, $default = null)
     {
-        return $this->_postParams[$key] ?? $default;
+        return self::$_postParams[$key] ?? $default;
     }
 
-    public function file($key)
+    public static function input($key, $default = null)
     {
-        return $this->_files[$key];
+        return self::$_inputParams[$key] ?? $default;
     }
 
-    public function all() : array
+    public static function arg($key, $default = null)
     {
-        return array_merge($this->_getParams, $this->_postParams);
+        return self::all()[$key] ?? $default;
+    }
+
+    public static function file($key)
+    {
+        return self::$_files[$key];
+    }
+
+    public static function all() : array
+    {
+        return array_merge(self::$_getParams, self::$_postParams, self::$_inputParams);
     }
 
 }

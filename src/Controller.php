@@ -13,13 +13,9 @@ class Controller
 {
     use InstanceTrait;
 
-    protected $request;
-    protected $response;
-
     public function __construct()
     {
-        $this->request = Request::getInstance();
-        $this->response = Response::getInstance();
+
     }
 
 }

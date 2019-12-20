@@ -24,7 +24,7 @@ trait InstanceTrait {
     public static function getInstance()
     {
         $args = func_get_args();
-        $className = self::class;
+        $className = static::class;
         $key = self::_getInstanceKey($className, $args);
         if(self::$instance[$key] === null) {
             self::$instance[$key] = new $className(...$args);

@@ -11,10 +11,13 @@ namespace Yunxuan\Lighting;
 
 class File
 {
+    const PHP_FILE_EXT = '.php';
+
     private static $fileCache;
 
-    public static function loadFile($path)
+    public static function loadFile($path, $fileExt = self::PHP_FILE_EXT)
     {
+        $path .= $fileExt;
         if(self::$fileCache[$path] === null) {
             self::$fileCache[$path] = file_exists($path) ? include $path : [];
         }

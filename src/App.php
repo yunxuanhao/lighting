@@ -8,86 +8,112 @@
 
 namespace Yunxuan\Lighting;
 
+use Yunxuan\Lighting\Exception\NotFound404Exception;
+
 class App
 {
-    use InstanceTrait;
+    private static $_trace;
 
-    private $_requestTime;
-    private $_env;
+    private static $_execOrder = ['before', 'main', 'after'];
 
-    private $_controllerDirName = 'Controller';
-    private $_controllerNamespaceName = 'Controller';
-    private $_fileExt = '.php';
-    private $_execOrder = ['before', 'main', 'after'];
+    // app 初始化
+    private static function init()
+    {
+        Request::init();
+        Router::init();
+        self::setRequestTime();
+        self::setTraceId();
+        self::setTimezone();
+        self::logRequest();
+    }
 
-    private $_namespace;
-    private $_rootPath;
-
-    // module数组，属于module中的key，走3层路由，默认为2层路由
-    private $_module = '';
-
-    protected function __construct()
+    private static function setRoute()
     {
 
     }
 
-    public function getRequestTime()
+    // 初始化请求时间
+    private static function setRequestTime()
     {
-        if($this->_requestTime === null) {
-            $this->_requestTime = $_SERVER['REQUEST_TIME'];
+        self::$_trace['requestTime'] = $_SERVER['REQUEST_TIME'];
+    }
+
+    // 初始化请求traceId，作为请求唯一识别号
+    private static function setTraceId()
+    {
+        $reqip = '127.0.0.1';
+        if (isset($_SERVER['REMOTE_ADDR'])) {
+            $reqip = $_SERVER['REMOTE_ADDR'];
+        } elseif (isset($_SERVER['SERVER_ADDR'])) {
+            $reqip = $_SERVER['SERVER_ADDR'];
         }
-        return $this->_requestTime;
+        $time = gettimeofday();
+        $time = $time['sec'] + $time['usec'];
+        $rand = mt_rand();
+        $ip = ip2long($reqip);
+        self::$_trace['traceId'] = self::_idToHex($ip ^ $time) . self::_idToHex($rand);
     }
 
-    public function setNameSpace($namespace = '')
+    public static function getTrace(): array
     {
-        $this->_namespace = $namespace;
-        return $this;
+        return self::$_trace;
     }
 
-    public function setRootPath($rootPath = '')
+    private static function _idToHex($id): string
     {
-        $this->_rootPath = $rootPath;
-        return $this;
+        return sprintf('%08s', dechex($id));
     }
 
-    public function run()
+    private static function setTimezone()
     {
-        // step2 分析url，复制到Request，得到controller和action
-        list($module, $controller, $action) = Router::dispatch();
-
-        // step3 校验controller和action是否存在，是否可执行（校验文件是否存在和命名空间是否正确）
-        $path = DIRECTORY_SEPARATOR . ($module ? ucfirst($module) . DIRECTORY_SEPARATOR : '').
-            ucfirst($controller) . DIRECTORY_SEPARATOR .
-            ucfirst($action) ;
-
-        // check filePath
-        $filePath = $this->_rootPath . DIRECTORY_SEPARATOR .
-            $this->_controllerDirName . $path . $this->_fileExt;
-        if(!file_exists($filePath)) {
-            throw new \NotFound404Exception();
+        $timezone = 'Asia/Shanghai';
+        if($v = Request::arg('timezone')) {
+            $timezone = $v;
+        } elseif ($v = config('app.timezone')) {
+            $timezone = $v;
         }
+        date_default_timezone_set($timezone);
+    }
 
-        // check namespace
-        $class = $this->_namespace . '\\' . $this->_controllerNamespaceName .
-            str_replace(DIRECTORY_SEPARATOR, '\\', $path);
-        if(!class_exists($class)) {
-            throw new \NotFound404Exception();
-        }
+    public static function logRequest()
+    {
 
-        // step4 exec controller->action （before，main，action）
-        $o = new $class();
-        foreach ($this->_execOrder as $order) {
-            if(method_exists($o, $order)) {
-                $o->$order();
+    }
+
+    public static function logResponse()
+    {
+
+    }
+
+    private static function final()
+    {
+        self::logResponse();
+        Response::render();
+    }
+
+    public static function run()
+    {
+        // step1 初始化请求信息
+        self::init();
+
+        try {
+            // step2 分析url，得到action对象
+            $o = Router::dispatch();
+
+            // step3 exec（before，main，action）
+            foreach (self::$_execOrder as $order) {
+                if(method_exists($o, $order)) {
+                    $res = $o->$order();
+                }
             }
+        } catch (NotFound404Exception $e) {
+            Response::json([
+                'errCode' => '10000',
+                'errMessage' => '404 NotFound',
+            ]);
         }
 
         // step5 over
-
-
+        self::final();
     }
-
-
-
 }
